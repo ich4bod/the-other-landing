@@ -24,6 +24,7 @@ button {
   cursor: pointer;
   touch-action: manipulation;
 }
+#look { touch-action: none; }
 button:hover { border-color: #d8bc84; }
 button:disabled { opacity: .5; cursor: default; }
 :focus-visible { outline: 3px solid #d8bc84; outline-offset: 4px; }
