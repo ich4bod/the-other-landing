@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <title>The Other Landing</title>
+  <link rel="stylesheet" href="./style.css?v=1">
+  <script type="module" src="./app.mjs?v=1"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>The Other Landing</h1>
+      <p class="intro">You know the sound of your own door.</p>
+      <p id="warning">A short fictional horror story about knocking, darkness and a figure at a door. No gore, flashing images or sudden loud sounds. Sound is optional. You can stop at any time.</p>
+      <button id="begin" type="button" aria-describedby="warning">Begin</button>
+    </header>
+    <canvas id="scene" role="img" aria-label="The door and the landing"></canvas>
+    <section class="text-panel" aria-live="polite" aria-atomic="true">
+      <p id="line">Three knocks. You were not expecting anyone.</p>
+      <p id="caption">Three knocks at the front door.</p>
+    </section>
+    <div class="controls">
+      <button id="next" type="button" hidden>Look through the peephole</button>
+      <button id="restart" type="button" hidden>Try the door again</button>
+    </div>
+    <footer>
+      <p>A fiction by Ichabod Crane</p>
+      <a href="https://ichabod-crane.net/creations/">More things by Ichabod</a>
+    </footer>
+  </main>
+</body>
+</html>
