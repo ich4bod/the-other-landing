@@ -20,7 +20,7 @@ function line(ctx, points, color, width = 0.0015) {
   ctx.stroke();
 }
 
-function coat(ctx) {
+function hook(ctx) {
   // The hook is fixed to the near wall, not the distant door.
   ctx.strokeStyle = palette.wood;
   ctx.lineWidth = 0.003;
@@ -29,7 +29,9 @@ function coat(ctx) {
   ctx.lineTo(0.25, 0.37);
   ctx.bezierCurveTo(0.25, 0.382, 0.266, 0.38, 0.263, 0.368);
   ctx.stroke();
+}
 
+function coat(ctx) {
   ctx.save();
   ctx.shadowColor = palette.background;
   ctx.shadowBlur = 0.018;
@@ -59,13 +61,7 @@ function coat(ctx) {
   line(ctx, [[0.275, 0.48], [0.285, 0.647]], '#27282b', 0.001);
 }
 
-export function drawScene(ctx, width, height, { scene, looking, elapsed, reducedMotion }) {
-  // Later story stages extend the views; this entry illustration has no motion.
-  ctx.save();
-  ctx.scale(width, height);
-  ctx.fillStyle = palette.background;
-  ctx.fillRect(0, 0, 1, 1);
-
+function hallway(ctx, scene) {
   const left = ctx.createLinearGradient(0, 0.5, 0.4, 0.4);
   left.addColorStop(0, palette.background);
   left.addColorStop(1, palette.walls);
@@ -142,7 +138,219 @@ export function drawScene(ctx, width, height, { scene, looking, elapsed, reduced
   ctx.fillRect(0.427, 0.116, 0.146, 0.033);
   ctx.fillStyle = palette.light;
   ctx.fillRect(0.43, 0.12, 0.14, 0.025);
-  coat(ctx);
+  hook(ctx);
+  if (scene === 0 || scene === 2) coat(ctx);
+  if (scene === 4) {
+    // A heavy folded hem protrudes from underneath the closed door.
+    ctx.beginPath();
+    ctx.moveTo(0.459, 0.696);
+    ctx.bezierCurveTo(0.449, 0.713, 0.424, 0.72, 0.438, 0.738);
+    ctx.bezierCurveTo(0.475, 0.73, 0.489, 0.746, 0.52, 0.736);
+    ctx.bezierCurveTo(0.544, 0.727, 0.55, 0.742, 0.57, 0.727);
+    ctx.lineTo(0.542, 0.699);
+    ctx.closePath();
+    ctx.fillStyle = palette.coat;
+    ctx.fill();
+    line(ctx, [[0.464, 0.706], [0.456, 0.724], [0.48, 0.724]], palette.walls, 0.002);
+    line(ctx, [[0.523, 0.705], [0.537, 0.728]], palette.walls, 0.002);
+  }
+  if (scene !== 6) {
+    // A small security chain is physically on this side until scene six.
+    ctx.fillStyle = palette.wood;
+    ctx.fillRect(0.575, 0.396, 0.013, 0.009);
+    ctx.fillRect(0.602, 0.392, 0.008, 0.016);
+    for (let i = 0; i < 7; i++) {
+      ctx.beginPath();
+      ctx.ellipse(0.585 + i * 0.003, 0.403 + Math.sin(i / 6 * Math.PI) * 0.009,
+        0.003, 0.0018, -0.4, 0, Math.PI * 2);
+      ctx.strokeStyle = palette.wood;
+      ctx.lineWidth = 0.001;
+      ctx.stroke();
+    }
+  } else {
+    // Only the shadow of the taut chain comes under the door. No inside latch.
+    for (let i = 0; i < 12; i++) {
+      ctx.beginPath();
+      ctx.ellipse(0.453 + i * 0.008, 0.713 + i * 0.0005,
+        0.0055, 0.0015, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = palette.background;
+      ctx.lineWidth = 0.002;
+      ctx.stroke();
+    }
+  }
+}
+
+function landing(ctx, width, height, looking, scene) {
+  const radius = (looking ? 0.47 : 0.36) * Math.min(width, height);
+  const rx = radius / width, ry = radius / height;
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(0.5, 0.5, rx, ry, 0, 0, Math.PI * 2);
+  ctx.clip();
+  const wall = ctx.createLinearGradient(0.18, 0.26, 0.82, 0.85);
+  wall.addColorStop(0, palette.walls);
+  wall.addColorStop(0.45, '#d8bc844c');
+  wall.addColorStop(1, palette.walls);
+  ctx.fillStyle = palette.walls;
+  ctx.fillRect(0, 0, 1, 1);
+  ctx.fillStyle = wall;
+  ctx.fillRect(0, 0, 1, 1);
+  // Looking across a broad landing at an offset doorway, not down our hall.
+  polygon(ctx, [[0.12, 0.16], [0.29, 0.26], [0.29, 0.75], [0.12, 0.94]], palette.door);
+  polygon(ctx, [[0, 0.86], [0.29, 0.75], [0.95, 0.77], [1, 1], [0, 1]], palette.door);
+  line(ctx, [[0.12, 0.94], [0.29, 0.75], [0.95, 0.77]], palette.wood, 0.005);
+  for (let i = 0; i < 5; i++) {
+    line(ctx, [[0.28 + i * 0.13, 0.77], [0.08 + i * 0.21, 1]], '#77614960', 0.001);
+  }
+  polygon(ctx, [[0.6, 0.24], [0.78, 0.26], [0.78, 0.762], [0.6, 0.756]], palette.wood);
+  polygon(ctx, [[0.61, 0.251], [0.77, 0.268], [0.77, 0.756], [0.61, 0.748]], palette.door);
+  line(ctx, [[0.633, 0.7], [0.633, 0.29], [0.747, 0.302], [0.747, 0.708], [0.633, 0.7]], '#10111490', 0.002);
+  ctx.fillStyle = palette.wood;
+  ctx.fillRect(0.746, 0.49, 0.006, 0.024);
+  line(ctx, [[0.747, 0.5], [0.728, 0.5]], palette.light, 0.002);
+  line(ctx, [[0.31, 0.28], [0.58, 0.3]], palette.light, 0.005);
+  if (scene === 5) {
+    // Reuse the coat's folds, enlarged and upright, with nothing above its collar.
+    ctx.save();
+    ctx.translate(0.5, 0.35);
+    ctx.scale(2.05, 1.55);
+    ctx.translate(-0.256, -0.395);
+    coat(ctx);
+    ctx.restore();
+    ctx.beginPath();
+    ctx.ellipse(0.5, 0.35, 0.027, 0.012, 0, 0, Math.PI * 2);
+    ctx.fillStyle = palette.background;
+    ctx.fill();
+    line(ctx, [[0.472, 0.35], [0.489, 0.386], [0.5, 0.371], [0.512, 0.386], [0.528, 0.35]], palette.walls, 0.003);
+  }
+  const lensShade = ctx.createRadialGradient(0.5, 0.5, rx * 0.3, 0.5, 0.5, rx * 1.3);
+  lensShade.addColorStop(0, '#10111400');
+  lensShade.addColorStop(1, '#101114c0');
+  ctx.fillStyle = lensShade;
+  ctx.fillRect(0, 0, 1, 1);
+  ctx.restore();
+  ctx.beginPath();
+  ctx.ellipse(0.5, 0.5, rx, ry, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = palette.wood;
+  ctx.lineWidth = 0.003;
+  ctx.stroke();
+}
+
+function closeWall(ctx) {
+  const wall = ctx.createLinearGradient(0.12, 0.2, 0.85, 0.8);
+  wall.addColorStop(0, palette.background);
+  wall.addColorStop(0.45, palette.walls);
+  wall.addColorStop(1, palette.background);
+  ctx.fillStyle = wall;
+  ctx.fillRect(0, 0, 1, 1);
+  line(ctx, [[0.56, 0], [0.559, 0.3], [0.562, 0.67], [0.56, 1]], '#b9b1a322', 0.002);
+  line(ctx, [[0.565, 0], [0.565, 1]], '#10111450', 0.001);
+  // Faded paper grain, with no doorway-shaped recess or border.
+  for (let i = 0; i < 36; i++) {
+    line(ctx, [[0.05 + i * 0.026, 0], [0.05 + i * 0.026, 1]], '#b9b1a303', 0.001);
+  }
+}
+
+function eye(ctx, width, height, looking) {
+  const radius = (looking ? 0.47 : 0.36) * Math.min(width, height);
+  const rx = radius / width, ry = radius / height;
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(0.5, 0.5, rx, ry, 0, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.fillStyle = palette.coat;
+  ctx.fillRect(0, 0, 1, 1);
+  ctx.beginPath();
+  ctx.moveTo(0.5 - rx * 1.15, 0.52);
+  ctx.bezierCurveTo(0.5 - rx * 0.4, 0.5 - ry * 1.2, 0.5 + rx * 0.45, 0.5 - ry * 1.15, 0.5 + rx * 1.2, 0.5);
+  ctx.bezierCurveTo(0.5 + rx * 0.5, 0.5 + ry, 0.5 - rx * 0.5, 0.5 + ry, 0.5 - rx * 1.15, 0.52);
+  ctx.closePath();
+  ctx.fillStyle = '#a59d88';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(0.5, 0.5, rx * 0.62, ry * 0.73, 0, 0, Math.PI * 2);
+  ctx.fillStyle = palette.coat;
+  ctx.fill();
+  ctx.strokeStyle = '#77614980';
+  ctx.lineWidth = 0.006;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(0.5, 0.5, rx * 0.35, ry * 0.42, 0, 0, Math.PI * 2);
+  ctx.fillStyle = palette.background;
+  ctx.fill();
+  // A dim rectangular reflection of the familiar door, facing outward with us.
+  ctx.fillStyle = '#d8bc8448';
+  ctx.fillRect(0.478, 0.408, 0.065, 0.137);
+  ctx.fillStyle = '#35302d80';
+  ctx.fillRect(0.483, 0.425, 0.055, 0.115);
+  ctx.fillStyle = palette.light;
+  ctx.fillRect(0.483, 0.414, 0.055, 0.008);
+  ctx.restore();
+  ctx.beginPath();
+  ctx.ellipse(0.5, 0.5, rx, ry, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = palette.wood;
+  ctx.lineWidth = 0.003;
+  ctx.stroke();
+}
+
+function outside(ctx) {
+  const wall = ctx.createLinearGradient(0.1, 0.2, 0.9, 0.8);
+  wall.addColorStop(0, palette.walls);
+  wall.addColorStop(0.5, '#d8bc843b');
+  wall.addColorStop(1, palette.walls);
+  ctx.fillStyle = palette.walls;
+  ctx.fillRect(0, 0, 1, 1);
+  ctx.fillStyle = wall;
+  ctx.fillRect(0, 0, 1, 1);
+  polygon(ctx, [[0, 0.87], [0.74, 0.79], [1, 0.9], [1, 1], [0, 1]], palette.door);
+  line(ctx, [[0, 0.87], [0.74, 0.79], [1, 0.9]], palette.wood, 0.004);
+  polygon(ctx, [[0.28, 0.14], [0.7, 0.19], [0.7, 0.8], [0.28, 0.858]], palette.wood);
+  polygon(ctx, [[0.29, 0.155], [0.685, 0.2], [0.685, 0.788], [0.29, 0.84]], palette.background);
+  // The cracked door exposes a wedge of our lit hall, including the bare hook.
+  polygon(ctx, [[0.29, 0.164], [0.34, 0.216], [0.34, 0.823], [0.29, 0.837]], palette.walls);
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(0.29, 0.164); ctx.lineTo(0.34, 0.216);
+  ctx.lineTo(0.34, 0.823); ctx.lineTo(0.29, 0.837); ctx.closePath();
+  ctx.clip();
+  ctx.translate(0.312, 0.655);
+  ctx.scale(0.75, 0.8);
+  ctx.translate(-0.25, -0.35);
+  hook(ctx);
+  ctx.restore();
+  polygon(ctx, [[0.34, 0.173], [0.685, 0.2], [0.685, 0.788], [0.34, 0.823]], palette.door);
+  line(ctx, [[0.368, 0.746], [0.368, 0.233], [0.657, 0.255], [0.657, 0.716], [0.368, 0.746]], palette.background, 0.003);
+  line(ctx, [[0.34, 0.173], [0.34, 0.823]], palette.wood, 0.003);
+  ctx.fillStyle = palette.wood;
+  ctx.fillRect(0.362, 0.49, 0.012, 0.045);
+  line(ctx, [[0.367, 0.505], [0.397, 0.505]], palette.light, 0.004);
+  ctx.beginPath();
+  ctx.ellipse(0.52, 0.39, 0.007, 0.009, 0, 0, Math.PI * 2);
+  ctx.fillStyle = palette.wood;
+  ctx.fill();
+  ctx.save();
+  ctx.translate(0.52, 0.32);
+  ctx.scale(-1, 1);
+  ctx.font = '0.05px Georgia';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = palette.light;
+  ctx.fillText('6', 0, 0);
+  ctx.restore();
+  ctx.fillStyle = palette.light;
+  ctx.fillRect(0.405, 0.125, 0.16, 0.018);
+}
+
+export function drawScene(ctx, width, height, { scene, looking, elapsed, reducedMotion }) {
+  // Stage two is intentionally static; hold, breathing and fade come later.
+  ctx.save();
+  ctx.scale(width, height);
+  ctx.fillStyle = palette.background;
+  ctx.fillRect(0, 0, 1, 1);
+  if ([0, 2, 4, 6].includes(scene)) hallway(ctx, scene);
+  else if (scene === 1 || scene === 5) landing(ctx, width, height, looking, scene);
+  else if (scene === 3) closeWall(ctx);
+  else if (scene === 7) eye(ctx, width, height, looking);
+  else if (scene === 8) outside(ctx);
 
   const shade = ctx.createRadialGradient(0.5, 0.4, 0.12, 0.5, 0.4, 0.7);
   shade.addColorStop(0, '#10111400');

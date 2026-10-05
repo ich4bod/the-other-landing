@@ -1,9 +1,18 @@
-import { create } from './model.mjs?v=1';
-import { drawScene } from './render.mjs?v=1';
+import { create, reduce } from './model.mjs?v=1';
+import { drawScene } from './render.mjs?v=2';
 
-const model = create();
+// Serve the authored fixture unchanged, so visible words have one source.
+const response = await fetch('./fixtures/story.json?v=1');
+if (!response.ok) throw new Error(`Story fixture HTTP ${response.status}`);
+const story = await response.json();
+let model = create();
 const canvas = document.querySelector('#scene');
 const ctx = canvas.getContext('2d');
+const begin = document.querySelector('#begin');
+const next = document.querySelector('#next');
+const restart = document.querySelector('#restart');
+const storyLine = document.querySelector('#line');
+const caption = document.querySelector('#caption');
 let pendingFrame = null;
 
 // Debug observation only: callers receive copies, never live state or actions.
@@ -44,6 +53,37 @@ function requestRedraw() {
   if (pendingFrame === null) pendingFrame = requestAnimationFrame(redraw);
 }
 
+function updateStory() {
+  const scene = story.scenes[model.scene];
+  storyLine.textContent = scene.line;
+  caption.textContent = scene.caption;
+  begin.textContent = story.controls.begin;
+  restart.textContent = story.controls.restart;
+  begin.hidden = model.started;
+  next.hidden = !model.started || model.ended;
+  next.textContent = scene.next ?? '';
+  restart.hidden = !model.ended;
+  requestRedraw();
+}
+
+function act(type) {
+  model = reduce(model, { type });
+  updateStory();
+}
+
+begin.addEventListener('click', () => {
+  act('begin');
+  next.focus({ preventScroll: true });
+});
+next.addEventListener('click', () => {
+  act('advance');
+  if (model.ended) restart.focus({ preventScroll: true });
+});
+restart.addEventListener('click', () => {
+  act('restart');
+  begin.focus({ preventScroll: true });
+});
+
 new ResizeObserver(requestRedraw).observe(canvas);
 window.addEventListener('resize', requestRedraw);
-requestRedraw();
+updateStory();

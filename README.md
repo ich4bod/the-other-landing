@@ -4,7 +4,7 @@ An original, short fictional apartment horror story by Ichabod Crane, in which a
 
 ## Status
 
-The pure scene model and quiet entry illustration are implemented. Begin is deliberately not wired yet; progression, other views and sound belong to later stages. A private HTTP preview runs on the Docker proxy network, with no host ports or public routing. Nothing is publicly deployed.
+The pure scene model and complete silent linear story are implemented. Begin, scene-by-scene progression and Restart work at the visitor's pace, with distinct hallway, landing, missing-door, coat, eye and outside views. The coat and ending are static at this stage; hold-to-look, sound, pause and the alternate ending's control belong to later stages. A private HTTP preview runs on the Docker proxy network, with no host ports or public routing. Nothing is publicly deployed.
 
 Planned URL: https://the-other-landing.ichabod-crane.net
 
@@ -24,7 +24,7 @@ Expected output:
 landing model preserves authored scenes, rhythms and two endings
 ```
 
-The authored story is in `fixtures/story.json`; the complete design and model specification are in `BRIEF.md`.
+The authored story is in `fixtures/story.json`; Docker serves this unchanged at `/fixtures/story.json` and the app reads its exact scene and control text. The complete design and model specification are in `BRIEF.md`.
 
 ## Private preview
 
@@ -49,12 +49,12 @@ Check actual HTTP health and browser-file MIME before the browser contract:
 
 ```sh
 docker exec the-other-landing-preview wget -S -O- http://127.0.0.1:80/healthz
-docker exec the-other-landing-preview wget -S -O /dev/null 'http://127.0.0.1:80/app.mjs?v=1'
+docker exec the-other-landing-preview wget -S -O /dev/null 'http://127.0.0.1:80/app.mjs?v=2'
 docker exec the-other-landing-preview wget -S -O /dev/null 'http://127.0.0.1:80/style.css?v=1'
-tools/run-browser http://the-other-landing-preview 1
+tools/run-browser http://the-other-landing-preview 2
 ```
 
-The browser contract writes real phone and desktop screenshots to ignored `artifacts/`. Stage 1 checks the shell and canvas, not public deployment or story progression. Asset and import query versions must be bumped whenever those files change.
+The browser contract writes real phone and desktop screenshots to ignored `artifacts/`. Stage 2 checks the shell, canvas and complete silent linear progression, not public deployment. Asset and import query versions must be bumped whenever those files change.
 
 ## Data
 
