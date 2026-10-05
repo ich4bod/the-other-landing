@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101114">
   <title>The Other Landing</title>
-  <link rel="stylesheet" href="./style.css?v=2">
-  <script type="module" src="./app.mjs?v=6"></script>
+  <link rel="stylesheet" href="./style.css?v=3">
+  <script type="module" src="./app.mjs?v=7"></script>
 </head>
 <body>
   <main>
@@ -27,7 +27,10 @@
       <button id="knock" type="button" aria-describedby="knock-guide" hidden>Knock on the door</button>
       <button id="restart" type="button" hidden>Try the door again</button>
       <button id="sound" type="button" aria-pressed="false" aria-describedby="audio-status">Sound on</button>
+      <button id="pause" type="button" aria-describedby="paused-status" hidden>Pause</button>
+      <a id="leave" href="https://ichabod-crane.net/creations/">Leave the story</a>
     </div>
+    <p id="paused-status" role="status" aria-live="polite"></p>
     <p id="knock-guide" hidden>Tap your own rhythm. The other side will learn it.</p>
     <p id="audio-status" role="status" aria-live="polite"></p>
     <footer>

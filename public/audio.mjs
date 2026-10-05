@@ -122,10 +122,10 @@ export function createAudio(onChange = () => {}) {
     }
   }
 
-  async function enable() {
+  async function enable({ suspended = false } = {}) {
     const ticket = ++generation;
     unavailable = false;
-    blocked = document.hidden;
+    blocked = suspended || document.hidden;
     try {
       if (!context) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -135,10 +135,19 @@ export function createAudio(onChange = () => {}) {
         master.gain.value = 0.15;
         master.connect(context.destination);
       }
-      await context.resume();
-      if (ticket !== generation) return;
-      if (context.state !== 'running') throw new Error('AudioContext did not resume');
+      // Preserve opt-in even if Pause is clicked during an async resume.
       enabled = true;
+      if (blocked) {
+        if (context.state === 'running') await context.suspend();
+      } else {
+        await context.resume();
+        if (ticket !== generation) {
+          if (blocked || !enabled) await context.suspend();
+          return;
+        }
+        if (context.state !== 'running') throw new Error('AudioContext did not resume');
+      }
+      if (ticket !== generation) return;
       cue();
       onChange();
     } catch {
@@ -175,7 +184,26 @@ export function createAudio(onChange = () => {}) {
     try { knocks(-0.6, rhythm, 0.6); } catch { fail(); }
   }
 
+  async function resume() {
+    if (!enabled || document.hidden) return;
+    const ticket = ++generation;
+    blocked = false;
+    try {
+      await context.resume();
+      if (ticket !== generation) {
+        if (blocked || !enabled) await context.suspend();
+        return;
+      }
+      if (context.state !== 'running') throw new Error('AudioContext did not resume');
+      cue();
+      onChange();
+    } catch {
+      if (ticket === generation) fail();
+    }
+  }
+
   function suspend() {
+    generation++;
     blocked = true;
     cancelSources();
     if (context?.state === 'running') context.suspend().catch(fail);
@@ -183,7 +211,7 @@ export function createAudio(onChange = () => {}) {
   }
 
   return Object.freeze({
-    enable, disable, setScene, suspend, echo, cancelRhythm,
+    enable, disable, setScene, suspend, resume, echo, cancelRhythm,
     get soundEnabled() { return enabled; },
     get audioState() {
       if (unavailable) return 'unavailable';

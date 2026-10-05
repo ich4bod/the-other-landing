@@ -1,6 +1,6 @@
 import { create, reduce } from './model.mjs?v=1';
 import { drawScene } from './render.mjs?v=3';
-import { createAudio } from './audio.mjs?v=2';
+import { createAudio } from './audio.mjs?v=3';
 
 // Serve the authored fixture unchanged, so visible words have one source.
 const response = await fetch('./fixtures/story.json?v=1');
@@ -17,6 +17,9 @@ const sound = document.querySelector('#sound');
 const audioStatus = document.querySelector('#audio-status');
 const knock = document.querySelector('#knock');
 const knockGuide = document.querySelector('#knock-guide');
+const pause = document.querySelector('#pause');
+const pausedStatus = document.querySelector('#paused-status');
+const leave = document.querySelector('#leave');
 const audio = createAudio(updateSound);
 const storyLine = document.querySelector('#line');
 const caption = document.querySelector('#caption');
@@ -27,6 +30,18 @@ const heldKeys = new Set();
 const echoTimers = new Set();
 let echoRing = false;
 let activeEchoBursts = 0;
+// Only active scene time reaches the renderer; a pause never adds elapsed time.
+let elapsed = 0;
+let clockStart = performance.now();
+
+function sceneElapsed() {
+  return elapsed + (clockStart === null ? 0 : performance.now() - clockStart);
+}
+
+function stopFrames() {
+  if (pendingFrame !== null) cancelAnimationFrame(pendingFrame);
+  pendingFrame = null;
+}
 
 function echoOffsets() {
   return model.knocks.map(at => at - model.knocks[0]);
@@ -100,12 +115,14 @@ function redraw() {
     scene: model.scene,
     looking,
     echoRing,
-    elapsed: 0,
+    elapsed: sceneElapsed(),
     reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
   });
 }
 
 function requestRedraw() {
+  // Resizing while paused may repaint the frozen view, but starts no RAF.
+  if (model.paused || document.hidden) return;
   if (pendingFrame === null) pendingFrame = requestAnimationFrame(redraw);
 }
 
@@ -125,6 +142,7 @@ function updateStory() {
   begin.hidden = model.started;
   next.hidden = !model.started || model.ended;
   next.textContent = scene.next ?? '';
+  next.disabled = model.paused;
   restart.hidden = !model.ended;
   look.textContent = story.controls.look;
   look.hidden = !model.started;
@@ -133,6 +151,11 @@ function updateStory() {
   knockGuide.textContent = story.controls.knockGuide;
   knock.hidden = knockGuide.hidden = !model.started || model.scene !== 6;
   knock.disabled = model.paused || model.ended;
+  pause.hidden = !model.started;
+  pause.disabled = model.ended;
+  pause.textContent = model.paused ? story.controls.resume : story.controls.pause;
+  pausedStatus.textContent = model.paused ? story.controls.paused : '';
+  leave.textContent = story.controls.leave;
   updateSound();
   requestRedraw();
 }
@@ -165,8 +188,26 @@ function act(type) {
   const previousScene = model.scene;
   model = reduce(model, { type });
   if (model.scene !== previousScene || ['restart', 'pause'].includes(type)) cancelEcho();
-  if (type === 'restart') audio.disable();
+  if (type === 'pause' && model.paused) {
+    elapsed = sceneElapsed();
+    clockStart = null;
+    audio.suspend();
+    stopFrames();
+  }
+  if (type === 'resume' && !model.paused) {
+    clockStart = performance.now();
+    audio.resume();
+  }
+  if (type === 'restart') {
+    audio.disable();
+    stopFrames();
+    elapsed = 0;
+    clockStart = performance.now();
+    audio.setScene(0);
+  }
   if (model.scene !== previousScene) {
+    elapsed = 0;
+    clockStart = performance.now();
     const rhythm = echoOffsets();
     audio.setScene(model.scene, rhythm);
     if (model.scene === 7 && !document.hidden) {
@@ -174,7 +215,10 @@ function act(type) {
     }
   }
   updateStory();
+  if (model.paused) redraw();
 }
+
+pause.addEventListener('click', () => act(model.paused ? 'resume' : 'pause'));
 
 look.addEventListener('pointerdown', event => {
   if (!canLook() || !event.isPrimary || event.button !== 0 || heldPointer !== null) return;
@@ -206,9 +250,13 @@ look.addEventListener('blur', clearLook);
 window.addEventListener('blur', clearLook);
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    clearLook();
-    cancelEcho();
-    audio.suspend();
+    if (model.started && !model.ended && !model.paused) act('pause');
+    else {
+      clearLook();
+      cancelEcho();
+      audio.suspend();
+      stopFrames();
+    }
   }
 });
 
@@ -218,7 +266,7 @@ sound.addEventListener('click', async () => {
     audio.disable();
   } else {
     sound.disabled = true;
-    try { await audio.enable(); } finally { sound.disabled = false; }
+    try { await audio.enable({ suspended: model.paused }); } finally { sound.disabled = false; }
   }
 });
 
@@ -250,6 +298,10 @@ restart.addEventListener('click', () => {
   begin.focus({ preventScroll: true });
 });
 
-new ResizeObserver(requestRedraw).observe(canvas);
-window.addEventListener('resize', requestRedraw);
+function resizeScene() {
+  if (model.paused) redraw();
+  else requestRedraw();
+}
+new ResizeObserver(resizeScene).observe(canvas);
+window.addEventListener('resize', resizeScene);
 updateStory();

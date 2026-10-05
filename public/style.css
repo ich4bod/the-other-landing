@@ -13,7 +13,7 @@ h1 { font-family: Georgia, serif; font-size: 32px; line-height: 1.1; font-weight
 p { margin: 0; }
 .intro { margin-bottom: 12px; }
 #warning { max-width: 66ch; color: #b9b1a3; margin-bottom: 16px; }
-button {
+button, #leave {
   min-height: 44px;
   padding: 10px 20px;
   font: inherit;
@@ -43,10 +43,12 @@ a:hover { color: #eee4d1; }
 #line, #caption { min-height: 4.65em; }
 #caption { color: #b9b1a3; }
 .controls { display: flex; flex-wrap: wrap; gap: 12px; max-width: 66ch; margin: 0 auto; }
+#leave { display: inline-flex; align-items: center; justify-content: center; }
+#paused-status { min-height: 4.65em; max-width: 66ch; margin: 12px auto 0; color: #b9b1a3; }
 footer { margin-top: 28px; color: #b9b1a3; font-size: 14px; }
 footer p { margin-bottom: 4px; }
 @media (max-width: 600px) {
   main { padding: 24px 16px; }
-  #begin, .controls button { width: 100%; }
+  #begin, .controls button, #leave { width: 100%; }
   .controls { flex-direction: column; }
 }
