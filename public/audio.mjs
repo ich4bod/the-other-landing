@@ -8,6 +8,7 @@ export function createAudio(onChange = () => {}) {
   let scene = 0;
   let offsets = [0, 320, 640];
   let blocked = false;
+  let reprisePlayed = false;
   const voices = new Set();
 
   function cancelSources() {
@@ -25,9 +26,9 @@ export function createAudio(onChange = () => {}) {
     onChange();
   }
 
-  function track(source, nodes) {
+  function track(source, nodes, rhythm = false) {
     const voice = {
-      source,
+      source, rhythm,
       dispose() {
         source.onended = null;
         source.disconnect();
@@ -52,7 +53,7 @@ export function createAudio(onChange = () => {}) {
     return buffer;
   }
 
-  function filteredNoise(buffer, { type, frequency, peak, pan = 0, loop = false, at = context.currentTime }) {
+  function filteredNoise(buffer, { type, frequency, peak, pan = 0, loop = false, rhythm = false, at = context.currentTime }) {
     const source = context.createBufferSource();
     source.buffer = buffer;
     source.loop = loop;
@@ -65,18 +66,18 @@ export function createAudio(onChange = () => {}) {
     const panner = context.createStereoPanner();
     panner.pan.value = pan;
     source.connect(filter).connect(gain).connect(panner).connect(master);
-    track(source, [filter, gain, panner]);
+    track(source, [filter, gain, panner], rhythm);
     return { source, gain, at };
   }
 
-  function knocks(pan, rhythm) {
+  function knocks(pan, rhythm, amplitude = 1) {
     const buffer = noise(0.09);
     const start = context.currentTime;
     for (const offset of rhythm) {
       const at = start + offset / 1000;
-      const voice = filteredNoise(buffer, { type: 'bandpass', frequency: 750, peak: 0, pan, at });
+      const voice = filteredNoise(buffer, { type: 'bandpass', frequency: 750, peak: 0, pan, at, rhythm: true });
       voice.gain.gain.setValueAtTime(0, at);
-      voice.gain.gain.linearRampToValueAtTime(0.25, at + 0.005);
+      voice.gain.gain.linearRampToValueAtTime(0.25 * amplitude, at + 0.005);
       voice.gain.gain.exponentialRampToValueAtTime(0.001, at + 0.09);
       voice.source.start(at);
       voice.source.stop(at + 0.09);
@@ -115,7 +116,10 @@ export function createAudio(onChange = () => {}) {
       const voice = filteredNoise(buffer, { type: 'lowpass', frequency: 750, peak: 0.025, loop: true });
       voice.source.start();
     }
-    if (scene === 7) knocks(0.6, offsets.length ? offsets : [0, 320, 640]);
+    if (scene === 7 && !reprisePlayed) {
+      knocks(0.6, offsets.length ? offsets : [0, 320, 640]);
+      reprisePlayed = true;
+    }
   }
 
   async function enable() {
@@ -152,9 +156,23 @@ export function createAudio(onChange = () => {}) {
   }
 
   function setScene(nextScene, echoOffsets = []) {
+    if (scene !== nextScene) reprisePlayed = false;
     scene = nextScene;
     offsets = [...echoOffsets];
     try { cue(); } catch { fail(); }
+  }
+
+  function cancelRhythm() {
+    for (const voice of [...voices]) {
+      if (!voice.rhythm) continue;
+      try { voice.source.stop(); } catch { /* It may already have ended. */ }
+      voice.dispose();
+    }
+  }
+
+  function echo(rhythm) {
+    if (!enabled || blocked || context?.state !== 'running' || scene !== 6) return;
+    try { knocks(-0.6, rhythm, 0.6); } catch { fail(); }
   }
 
   function suspend() {
@@ -165,7 +183,7 @@ export function createAudio(onChange = () => {}) {
   }
 
   return Object.freeze({
-    enable, disable, setScene, suspend,
+    enable, disable, setScene, suspend, echo, cancelRhythm,
     get soundEnabled() { return enabled; },
     get audioState() {
       if (unavailable) return 'unavailable';

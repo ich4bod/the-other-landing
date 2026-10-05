@@ -4,7 +4,7 @@ An original, short fictional apartment horror story by Ichabod Crane, in which a
 
 ## Status
 
-The pure scene model, complete silent linear story and hold-to-look are implemented. Begin, scene-by-scene progression and Restart work at the visitor's pace, with distinct hallway, landing, missing-door, coat, eye and outside views. Hold to look closer is available at the empty landing, standing coat and eye: hold a primary pointer, Space or Enter; release, cancel, focus loss or a hidden tab restores the normal lens. Sound on explicitly enables local Web Audio knocks, a quiet hum, cloth and a slow breath; Sound off cancels all sources, and subsequent toggles reuse the same AudioContext. Captions stay visible when muted or audio is unavailable. Scene changes, restart and a hidden tab cancel old sources; returning to the tab does not automatically play audio. Restart resets opt-in. The coat and ending are static at this stage; rhythm imitation, pause and the alternate ending's control belong to later stages. A private HTTP preview runs on the Docker proxy network, with no host ports or public routing. Nothing is publicly deployed.
+The pure scene model, complete silent linear story and hold-to-look are implemented. Begin, scene-by-scene progression and Restart work at the visitor's pace, with distinct hallway, landing, missing-door, coat, eye and outside views. Hold to look closer is available at the empty landing, standing coat and eye: hold a primary pointer, Space or Enter; release, cancel, focus loss or a hidden tab restores the normal lens. Sound on explicitly enables local Web Audio knocks, a quiet hum, cloth and a slow breath; Sound off cancels all sources, and subsequent toggles reuse the same AudioContext. Captions stay visible when muted or audio is unavailable. Scene changes, restart and a hidden tab cancel old sources; returning to the tab does not automatically play audio. Restart resets opt-in. At the locked-chain scene, Knock on the door records the player's last six native pointer/keyboard taps even with sound off. After 900ms of quiet, the retained rhythm returns once at softer amplitude from the other side, accompanied by a tiny amber peephole ring. Each tap cancels the previous echo; advancing to the eye reprises the current rhythm once, or the authored three knocks if none were recorded. Scene changes, Sound off, restart and hidden tabs cancel pending echoes. The coat and ending are static at this stage; pause and the alternate ending's control belong to later stages. A private HTTP preview runs on the Docker proxy network, with no host ports or public routing. Nothing is publicly deployed.
 
 Planned URL: https://the-other-landing.ichabod-crane.net
 
@@ -49,13 +49,14 @@ Check actual HTTP health and browser-file MIME before the browser contract:
 
 ```sh
 docker exec the-other-landing-preview wget -S -O- http://127.0.0.1:80/healthz
-docker exec the-other-landing-preview wget -S -O /dev/null 'http://127.0.0.1:80/app.mjs?v=5'
+docker exec the-other-landing-preview wget -S -O /dev/null 'http://127.0.0.1:80/app.mjs?v=6'
 docker exec the-other-landing-preview wget -S -O /dev/null 'http://127.0.0.1:80/style.css?v=2'
-docker exec the-other-landing-preview wget -S -O /dev/null 'http://127.0.0.1:80/audio.mjs?v=1'
-tools/run-browser http://the-other-landing-preview 4
+docker exec the-other-landing-preview wget -S -O /dev/null 'http://127.0.0.1:80/audio.mjs?v=2'
+docker exec the-other-landing-preview wget -S -O /dev/null 'http://127.0.0.1:80/render.mjs?v=3'
+tools/run-browser http://the-other-landing-preview 5
 ```
 
-The browser contract writes real phone and desktop screenshots to ignored `artifacts/`. Stage 4 checks the shell, canvas, complete silent linear progression, pointer/keyboard hold-to-look and actual opt-in AudioContext source creation, not public deployment. Asset and import query versions must be bumped whenever those files change.
+The browser contract writes real phone and desktop screenshots to ignored `artifacts/`. Stage 5 checks the shell, canvas, complete silent linear progression, pointer/keyboard hold-to-look, actual opt-in AudioContext source creation and the retained personal knock rhythm/caption, not public deployment. Asset and import query versions must be bumped whenever those files change.
 
 ## Data
 

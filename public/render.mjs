@@ -340,7 +340,7 @@ function outside(ctx) {
   ctx.fillRect(0.405, 0.125, 0.16, 0.018);
 }
 
-export function drawScene(ctx, width, height, { scene, looking, elapsed, reducedMotion }) {
+export function drawScene(ctx, width, height, { scene, looking, elapsed, reducedMotion, echoRing = false }) {
   // Stage two is intentionally static; hold, breathing and fade come later.
   ctx.save();
   ctx.scale(width, height);
@@ -365,6 +365,15 @@ export function drawScene(ctx, width, height, { scene, looking, elapsed, reduced
       ctx.fillStyle = hash & 1 ? '#d8bc8406' : '#1011140a';
       ctx.fillRect(x / 160, y / 120, 1 / 160, 1 / 120);
     }
+  }
+  if (echoRing && (scene === 6 || scene === 7)) {
+    // A tiny, steady amber rim at the peephole, never a full-screen flash.
+    const y = scene === 6 ? 0.37 : 0.5;
+    ctx.beginPath();
+    ctx.ellipse(0.5, y, 0.01, 0.01 * width / height, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = palette.light;
+    ctx.lineWidth = 0.002;
+    ctx.stroke();
   }
   ctx.restore();
 }

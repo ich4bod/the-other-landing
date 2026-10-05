@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101114">
   <title>The Other Landing</title>
   <link rel="stylesheet" href="./style.css?v=2">
-  <script type="module" src="./app.mjs?v=5"></script>
+  <script type="module" src="./app.mjs?v=6"></script>
 </head>
 <body>
   <main>
@@ -24,9 +24,11 @@
     <div class="controls">
       <button id="next" type="button" hidden>Look through the peephole</button>
       <button id="look" type="button" hidden disabled>Hold to look closer</button>
+      <button id="knock" type="button" aria-describedby="knock-guide" hidden>Knock on the door</button>
       <button id="restart" type="button" hidden>Try the door again</button>
       <button id="sound" type="button" aria-pressed="false" aria-describedby="audio-status">Sound on</button>
     </div>
+    <p id="knock-guide" hidden>Tap your own rhythm. The other side will learn it.</p>
     <p id="audio-status" role="status" aria-live="polite"></p>
     <footer>
       <p>A fiction by Ichabod Crane</p>
