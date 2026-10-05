@@ -1,5 +1,6 @@
 import { create, reduce } from './model.mjs?v=1';
 import { drawScene } from './render.mjs?v=2';
+import { createAudio } from './audio.mjs?v=1';
 
 // Serve the authored fixture unchanged, so visible words have one source.
 const response = await fetch('./fixtures/story.json?v=1');
@@ -12,6 +13,9 @@ const begin = document.querySelector('#begin');
 const next = document.querySelector('#next');
 const restart = document.querySelector('#restart');
 const look = document.querySelector('#look');
+const sound = document.querySelector('#sound');
+const audioStatus = document.querySelector('#audio-status');
+const audio = createAudio(updateSound);
 const storyLine = document.querySelector('#line');
 const caption = document.querySelector('#caption');
 let pendingFrame = null;
@@ -26,8 +30,8 @@ Object.defineProperty(window, '__landing', {
       return {
         model: { ...model, knocks: [...model.knocks] },
         looking,
-        soundEnabled: false,
-        audioState: 'off',
+        soundEnabled: audio.soundEnabled,
+        audioState: audio.audioState,
         echoOffsets: [],
         pendingFrames: pendingFrame === null ? 0 : 1,
       };
@@ -40,6 +44,9 @@ Object.defineProperty(window, '__landing', {
 function redraw() {
   pendingFrame = null;
   const { width, height } = canvas.getBoundingClientRect();
+  // Full-page capture or a collapsed viewport can temporarily have no drawable area.
+  // ResizeObserver will request a fresh frame when layout returns.
+  if (width <= 0 || height <= 0) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(width * dpr);
   canvas.height = Math.round(height * dpr);
@@ -57,6 +64,12 @@ function requestRedraw() {
   if (pendingFrame === null) pendingFrame = requestAnimationFrame(redraw);
 }
 
+function updateSound() {
+  sound.textContent = audio.soundEnabled ? story.controls.soundOff : story.controls.soundOn;
+  sound.setAttribute('aria-pressed', String(audio.soundEnabled));
+  audioStatus.textContent = audio.audioState === 'unavailable' ? story.controls.audioError : '';
+}
+
 function updateStory() {
   const scene = story.scenes[model.scene];
   storyLine.textContent = scene.line;
@@ -70,6 +83,7 @@ function updateStory() {
   look.textContent = story.controls.look;
   look.hidden = !model.started;
   look.disabled = !canLook();
+  updateSound();
   requestRedraw();
 }
 
@@ -98,7 +112,10 @@ function clearLook() {
 
 function act(type) {
   clearLook();
+  const previousScene = model.scene;
   model = reduce(model, { type });
+  if (type === 'restart') audio.disable();
+  if (model.scene !== previousScene) audio.setScene(model.scene);
   updateStory();
 }
 
@@ -131,7 +148,19 @@ look.addEventListener('keyup', event => {
 look.addEventListener('blur', clearLook);
 window.addEventListener('blur', clearLook);
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) clearLook();
+  if (document.hidden) {
+    clearLook();
+    audio.suspend();
+  }
+});
+
+sound.addEventListener('click', async () => {
+  if (audio.soundEnabled) {
+    audio.disable();
+  } else {
+    sound.disabled = true;
+    try { await audio.enable(); } finally { sound.disabled = false; }
+  }
 });
 
 begin.addEventListener('click', () => {
