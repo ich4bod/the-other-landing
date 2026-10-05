@@ -40,6 +40,7 @@ a:hover { color: #eee4d1; }
   background: #101114;
 }
 .text-panel { max-width: 66ch; margin: 20px auto 0; }
+#end-title { font: normal 24px/1.3 Georgia, serif; margin: 0 0 12px; }
 #line, #caption { min-height: 4.65em; }
 #caption { color: #b9b1a3; }
 .controls { display: flex; flex-wrap: wrap; gap: 12px; max-width: 66ch; margin: 0 auto; }

@@ -180,7 +180,7 @@ function hallway(ctx, scene) {
   }
 }
 
-function landing(ctx, width, height, looking, scene) {
+function landing(ctx, width, height, looking, scene, elapsed, reducedMotion) {
   const radius = (looking ? 0.47 : 0.36) * Math.min(width, height);
   const rx = radius / width, ry = radius / height;
   ctx.save();
@@ -212,16 +212,21 @@ function landing(ctx, width, height, looking, scene) {
   if (scene === 5) {
     // Reuse the coat's folds, enlarged and upright, with nothing above its collar.
     ctx.save();
-    ctx.translate(0.5, 0.35);
+    const breath = reducedMotion ? 1 : 1 + 0.01 * Math.sin(elapsed * 2 * Math.PI / 4000);
+    ctx.translate(0.5, 0.8);
+    ctx.scale(1, breath);
+    ctx.translate(0, -0.45);
+    ctx.save();
     ctx.scale(2.05, 1.55);
     ctx.translate(-0.256, -0.395);
     coat(ctx);
     ctx.restore();
     ctx.beginPath();
-    ctx.ellipse(0.5, 0.35, 0.027, 0.012, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, 0.027, 0.012, 0, 0, Math.PI * 2);
     ctx.fillStyle = palette.background;
     ctx.fill();
-    line(ctx, [[0.472, 0.35], [0.489, 0.386], [0.5, 0.371], [0.512, 0.386], [0.528, 0.35]], palette.walls, 0.003);
+    line(ctx, [[-0.028, 0], [-0.011, 0.036], [0, 0.021], [0.012, 0.036], [0.028, 0]], palette.walls, 0.003);
+    ctx.restore();
   }
   const lensShade = ctx.createRadialGradient(0.5, 0.5, rx * 0.3, 0.5, 0.5, rx * 1.3);
   lensShade.addColorStop(0, '#10111400');
@@ -340,17 +345,58 @@ function outside(ctx) {
   ctx.fillRect(0.405, 0.125, 0.16, 0.018);
 }
 
+function welcome(ctx) {
+  // Our familiar hall, but its door has swung inward into an unlit room.
+  hallway(ctx, 6);
+  polygon(ctx, [[0.405, 0.16], [0.595, 0.16], [0.595, 0.7], [0.405, 0.7]], palette.background);
+  // Two separate collars and sleeves share the same impossibly narrow threshold.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0.405, 0.16, 0.19, 0.54);
+  ctx.clip();
+  for (const [x, y, scale] of [[0.476, 0.32, 0.92], [0.532, 0.35, 1.08]]) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, 1.15);
+    ctx.translate(-0.256, -0.395);
+    coat(ctx);
+    ctx.restore();
+    ctx.beginPath();
+    ctx.ellipse(x, y, 0.012 * scale, 0.006, 0, 0, Math.PI * 2);
+    ctx.fillStyle = palette.background;
+    ctx.fill();
+  }
+  ctx.restore();
+  // The hinged slab recedes to the right, leaving the two coats in the dark wedge.
+  polygon(ctx, [[0.595, 0.16], [0.552, 0.23], [0.552, 0.65], [0.595, 0.7]], palette.door);
+  line(ctx, [[0.552, 0.23], [0.552, 0.65]], palette.wood, 0.002);
+  line(ctx, [[0.562, 0.466], [0.573, 0.469]], palette.light, 0.002);
+}
+
 export function drawScene(ctx, width, height, { scene, looking, elapsed, reducedMotion, echoRing = false }) {
-  // Stage two is intentionally static; hold, breathing and fade come later.
   ctx.save();
   ctx.scale(width, height);
   ctx.fillStyle = palette.background;
   ctx.fillRect(0, 0, 1, 1);
   if ([0, 2, 4, 6].includes(scene)) hallway(ctx, scene);
-  else if (scene === 1 || scene === 5) landing(ctx, width, height, looking, scene);
+  else if (scene === 1 || scene === 5) landing(ctx, width, height, looking, scene, elapsed, reducedMotion);
   else if (scene === 3) closeWall(ctx);
   else if (scene === 7) eye(ctx, width, height, looking);
-  else if (scene === 8) outside(ctx);
+  else if (scene === 8 || scene === 9) {
+    const fade = reducedMotion ? 1 : Math.min(1, Math.max(0, elapsed / 600));
+    // A single gradual dissolve from the preceding view, not a surprise flash.
+    if (fade < 1) {
+      if (scene === 8) eye(ctx, width, height, false);
+      else hallway(ctx, 6);
+    }
+    ctx.save();
+    ctx.globalAlpha = fade;
+    ctx.fillStyle = palette.background;
+    ctx.fillRect(0, 0, 1, 1);
+    if (scene === 8) outside(ctx);
+    else welcome(ctx);
+    ctx.restore();
+  }
 
   const shade = ctx.createRadialGradient(0.5, 0.4, 0.12, 0.5, 0.4, 0.7);
   shade.addColorStop(0, '#10111400');

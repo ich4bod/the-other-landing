@@ -1,5 +1,5 @@
 import { create, reduce } from './model.mjs?v=1';
-import { drawScene } from './render.mjs?v=3';
+import { drawScene } from './render.mjs?v=4';
 import { createAudio } from './audio.mjs?v=3';
 
 // Serve the authored fixture unchanged, so visible words have one source.
@@ -12,6 +12,9 @@ const ctx = canvas.getContext('2d');
 const begin = document.querySelector('#begin');
 const next = document.querySelector('#next');
 const restart = document.querySelector('#restart');
+const open = document.querySelector('#open');
+const endTitle = document.querySelector('#end-title');
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
 const look = document.querySelector('#look');
 const sound = document.querySelector('#sound');
 const audioStatus = document.querySelector('#audio-status');
@@ -111,13 +114,21 @@ function redraw() {
   canvas.height = Math.round(height * dpr);
   // Rounded backing dimensions still map exactly to CSS coordinates.
   ctx.setTransform(canvas.width / width, 0, 0, canvas.height / height, 0, 0);
+  const renderElapsed = sceneElapsed();
   drawScene(ctx, width, height, {
     scene: model.scene,
     looking,
     echoRing,
-    elapsed: sceneElapsed(),
-    reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+    elapsed: renderElapsed,
+    reducedMotion: motionPreference.matches,
   });
+  // One shared frame chain: only the breathing coat and the finite ending fade move.
+  if (model.ended && (motionPreference.matches || renderElapsed >= 600)) {
+    elapsed = 600;
+    clockStart = null;
+  }
+  if (!model.paused && !document.hidden && !motionPreference.matches &&
+      (model.scene === 5 || (model.ended && renderElapsed < 600))) requestRedraw();
 }
 
 function requestRedraw() {
@@ -144,6 +155,13 @@ function updateStory() {
   next.textContent = scene.next ?? '';
   next.disabled = model.paused;
   restart.hidden = !model.ended;
+  endTitle.hidden = !model.ended;
+  endTitle.textContent = story.controls.endTitle;
+  open.textContent = story.controls.open;
+  open.hidden = !model.started || model.scene !== 6;
+  open.disabled = model.paused || model.ended;
+  document.querySelector('footer p').textContent = story.controls.footer;
+  document.querySelector('footer a').textContent = story.controls.home;
   look.textContent = story.controls.look;
   look.hidden = !model.started;
   look.disabled = !canLook();
@@ -293,9 +311,24 @@ next.addEventListener('click', () => {
   act('advance');
   if (model.ended) restart.focus({ preventScroll: true });
 });
+open.addEventListener('click', () => {
+  act('open');
+  if (model.ended) restart.focus({ preventScroll: true });
+});
 restart.addEventListener('click', () => {
   act('restart');
   begin.focus({ preventScroll: true });
+});
+
+motionPreference.addEventListener('change', () => {
+  stopFrames();
+  // Once snapped to its final view, an ending must not fade in a second time.
+  if (model.ended && motionPreference.matches) {
+    elapsed = Math.max(600, sceneElapsed());
+    clockStart = null;
+  }
+  if (model.paused) redraw();
+  else requestRedraw();
 });
 
 function resizeScene() {
