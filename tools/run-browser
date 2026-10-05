@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd "$(dirname "$0")/.." && pwd)"
+mkdir -p "$root/artifacts"
+id=$(docker run -d --network ichabod-proxy --cpus .50 --memory 512m --pids-limit 256 -v "$root:/app:ro" -v "$root/artifacts:/w/artifacts" -v "$root/fixtures:/w/fixtures:ro" -w /w -e NODE_PATH=/w/node_modules mcr.microsoft.com/playwright:v1.55.0-noble bash -c 'npm install --no-audit --no-fund playwright-core@1.55.0 >&2 && node /app/tools/browser-contract.cjs "$1" "$2"' _ "$1" "$2")
+trap 'docker rm -f "$id" >/dev/null 2>&1 || true' EXIT
+code=$(docker wait "$id")
+docker logs "$id"
+exit "$code"
