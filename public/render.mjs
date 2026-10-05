@@ -226,6 +226,8 @@ function landing(ctx, width, height, looking, scene, elapsed, reducedMotion) {
     ctx.fillStyle = palette.background;
     ctx.fill();
     line(ctx, [[-0.028, 0], [-0.011, 0.036], [0, 0.021], [0.012, 0.036], [0.028, 0]], palette.walls, 0.003);
+    line(ctx, [[-0.028, 0], [-0.011, 0.036], [0, 0.021], [0.012, 0.036], [0.028, 0]], "#776149", 0.004);
+    line(ctx, [[-0.017, 0.045], [-0.022, 0.39]], "#35302d", 0.002);
     ctx.restore();
   }
   const lensShade = ctx.createRadialGradient(0.5, 0.5, rx * 0.3, 0.5, 0.5, rx * 1.3);
