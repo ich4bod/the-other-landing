@@ -1,5 +1,5 @@
 import { create, reduce } from './model.mjs?v=1';
-import { drawScene } from './render.mjs?v=12';
+import { drawScene } from './render.mjs?v=13';
 import { createAudio } from './audio.mjs?v=4';
 
 // Serve the authored fixture unchanged, so visible words have one source.

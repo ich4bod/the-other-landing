@@ -273,7 +273,7 @@ function closeWall(ctx) {
   }
 }
 
-function eye(ctx, width, height, looking) {
+function eye(ctx, width, height, looking, echoRing = false, reducedMotion = true) {
   const radius = (looking ? 0.47 : 0.36) * Math.min(width, height);
   const rx = radius / width, ry = radius / height;
   ctx.save();
@@ -305,7 +305,7 @@ function eye(ctx, width, height, looking) {
   ctx.fillRect(0.478, 0.408, 0.065, 0.137);
   ctx.fillStyle = '#35302d80';
   ctx.fillRect(0.483, 0.425, 0.055, 0.115);
-  ctx.fillStyle = palette.light;
+  ctx.fillStyle = echoRing && !reducedMotion ? '#101114' : palette.light;
   ctx.fillRect(0.483, 0.414, 0.055, 0.008);
   ctx.restore();
   ctx.beginPath();
@@ -402,7 +402,7 @@ export function drawScene(ctx, width, height, { scene, looking, elapsed, reduced
   if ([0, 2, 4, 6].includes(scene)) hallway(ctx, scene, elapsed, reducedMotion);
   else if (scene === 1 || scene === 5) landing(ctx, width, height, looking, scene, elapsed, reducedMotion);
   else if (scene === 3) closeWall(ctx);
-  else if (scene === 7) eye(ctx, width, height, looking);
+  else if (scene === 7) eye(ctx, width, height, looking, echoRing, reducedMotion);
   else if (scene === 8 || scene === 9) {
     const fade = reducedMotion ? 1 : Math.min(1, Math.max(0, elapsed / 600));
     // A single gradual dissolve from the preceding view, not a surprise flash.
