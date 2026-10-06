@@ -326,6 +326,8 @@ function outside(ctx) {
   polygon(ctx, [[0.29, 0.155], [0.685, 0.2], [0.685, 0.788], [0.29, 0.84]], palette.background);
   // The cracked door exposes a wedge of our lit hall, including the bare hook.
   polygon(ctx, [[0.29, 0.164], [0.34, 0.216], [0.34, 0.823], [0.29, 0.837]], palette.walls);
+  line(ctx, [[0.291, 0.837], [0.324, 0.851], [0.375, 0.847]], "#776149", 0.005);
+  line(ctx, [[0.291, 0.836], [0.322, 0.846]], "#d8bc84", 0.002);
   ctx.save();
   ctx.beginPath();
   ctx.moveTo(0.29, 0.164); ctx.lineTo(0.34, 0.216);
