@@ -380,6 +380,8 @@ function welcome(ctx) {
     ctx.ellipse(x, y, 0.012 * scale, 0.006, 0, 0, Math.PI * 2);
     ctx.fillStyle = palette.background;
     ctx.fill();
+    if (x === 0.476) line(ctx, [[0.463, 0.319], [0.472, 0.336], [0.476, 0.329], [0.481, 0.336], [0.489, 0.319]], "#776149", 0.0025);
+    if (x === 0.532) line(ctx, [[0.518, 0.349], [0.527, 0.369], [0.532, 0.361], [0.538, 0.369], [0.546, 0.349]], "#776149", 0.0025);
   }
   ctx.restore();
   // The hinged slab recedes to the right, leaving the two coats in the dark wedge.
