@@ -1,5 +1,5 @@
 import { create, reduce } from './model.mjs?v=1';
-import { drawScene } from './render.mjs?v=11';
+import { drawScene } from './render.mjs?v=12';
 import { createAudio } from './audio.mjs?v=3';
 
 // Serve the authored fixture unchanged, so visible words have one source.
@@ -128,7 +128,7 @@ function redraw() {
     clockStart = null;
   }
   if (!model.paused && !document.hidden && !motionPreference.matches &&
-      (model.scene === 5 || (model.ended && renderElapsed < 600))) requestRedraw();
+      (model.scene === 5 || (model.scene === 6 && renderElapsed < 600) || (model.ended && renderElapsed < 600))) requestRedraw();
 }
 
 function requestRedraw() {

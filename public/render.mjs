@@ -66,7 +66,7 @@ function coat(ctx) {
   line(ctx, [[0.256, 0.439], [0.252, 0.628]], "#35302d", 0.0015);
 }
 
-function hallway(ctx, scene) {
+function hallway(ctx, scene, elapsed = 600, reducedMotion = true) {
   const left = ctx.createLinearGradient(0, 0.5, 0.4, 0.4);
   left.addColorStop(0, palette.background);
   left.addColorStop(1, palette.walls);
@@ -176,6 +176,9 @@ function hallway(ctx, scene) {
     }
   } else {
     // Only the shadow of the taut chain comes under the door. No inside latch.
+    ctx.save();
+    const p = reducedMotion ? 1 : Math.min(1, Math.max(0, elapsed / 600));
+    ctx.translate(0, 0.02 * (1 - p) ** 2);
     ctx.fillStyle = "#776149";
     ctx.fillRect(0.446, 0.704, 0.114, 0.024);
     ctx.fillStyle = "#d8bc84";
@@ -188,6 +191,7 @@ function hallway(ctx, scene) {
       ctx.lineWidth = 0.002;
       ctx.stroke();
     }
+    ctx.restore();
   }
 }
 
@@ -395,7 +399,7 @@ export function drawScene(ctx, width, height, { scene, looking, elapsed, reduced
   ctx.scale(width, height);
   ctx.fillStyle = palette.background;
   ctx.fillRect(0, 0, 1, 1);
-  if ([0, 2, 4, 6].includes(scene)) hallway(ctx, scene);
+  if ([0, 2, 4, 6].includes(scene)) hallway(ctx, scene, elapsed, reducedMotion);
   else if (scene === 1 || scene === 5) landing(ctx, width, height, looking, scene, elapsed, reducedMotion);
   else if (scene === 3) closeWall(ctx);
   else if (scene === 7) eye(ctx, width, height, looking);
