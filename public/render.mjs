@@ -29,6 +29,8 @@ function hook(ctx) {
   ctx.lineTo(0.25, 0.37);
   ctx.bezierCurveTo(0.25, 0.382, 0.266, 0.38, 0.263, 0.368);
   ctx.stroke();
+  line(ctx, [[0.239, 0.354], [0.244, 0.357]], "#776149", 0.0015);
+  line(ctx, [[0.268, 0.357], [0.271, 0.362]], "#35302d", 0.002);
 }
 
 function coat(ctx) {
