@@ -9,6 +9,7 @@ export function createAudio(onChange = () => {}) {
   let offsets = [0, 320, 640];
   let blocked = false;
   let reprisePlayed = false;
+  let chainPlayed = false;
   const voices = new Set();
 
   function cancelSources() {
@@ -116,6 +117,12 @@ export function createAudio(onChange = () => {}) {
       const voice = filteredNoise(buffer, { type: 'lowpass', frequency: 750, peak: 0.025, loop: true });
       voice.source.start();
     }
+    if (scene === 6 && !chainPlayed) {
+      const buffer = noise(0.18, t => Math.sin(Math.PI * t / 0.18) ** 2);
+      const voice = filteredNoise(buffer, { type: 'bandpass', frequency: 1200, peak: 0.035, pan: 0.6 });
+      voice.source.start();
+      chainPlayed = true;
+    }
     if (scene === 7 && !reprisePlayed) {
       knocks(0.6, offsets.length ? offsets : [0, 320, 640]);
       reprisePlayed = true;
@@ -165,7 +172,10 @@ export function createAudio(onChange = () => {}) {
   }
 
   function setScene(nextScene, echoOffsets = []) {
-    if (scene !== nextScene) reprisePlayed = false;
+    if (scene !== nextScene) {
+      reprisePlayed = false;
+      chainPlayed = false;
+    }
     scene = nextScene;
     offsets = [...echoOffsets];
     try { cue(); } catch { fail(); }

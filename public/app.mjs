@@ -1,6 +1,6 @@
 import { create, reduce } from './model.mjs?v=1';
 import { drawScene } from './render.mjs?v=12';
-import { createAudio } from './audio.mjs?v=3';
+import { createAudio } from './audio.mjs?v=4';
 
 // Serve the authored fixture unchanged, so visible words have one source.
 const response = await fetch('./fixtures/story.json?v=1');
