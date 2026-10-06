@@ -176,6 +176,10 @@ function hallway(ctx, scene) {
     }
   } else {
     // Only the shadow of the taut chain comes under the door. No inside latch.
+    ctx.fillStyle = "#776149";
+    ctx.fillRect(0.446, 0.704, 0.114, 0.024);
+    ctx.fillStyle = "#d8bc84";
+    ctx.fillRect(0.446, 0.704, 0.114, 0.003);
     for (let i = 0; i < 12; i++) {
       ctx.beginPath();
       ctx.ellipse(0.453 + i * 0.008, 0.713 + i * 0.0005,
