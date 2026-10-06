@@ -158,6 +158,8 @@ function hallway(ctx, scene) {
     ctx.fill();
     line(ctx, [[0.464, 0.706], [0.456, 0.724], [0.48, 0.724]], palette.walls, 0.002);
     line(ctx, [[0.523, 0.705], [0.537, 0.728]], palette.walls, 0.002);
+    line(ctx, [[0.438, 0.736], [0.46, 0.731], [0.48, 0.736], [0.501, 0.739], [0.52, 0.734], [0.54, 0.737], [0.568, 0.725]], "#776149", 0.002);
+    line(ctx, [[0.461, 0.714], [0.476, 0.718]], "#35302d", 0.002);
   }
   if (scene !== 6) {
     // A small security chain is physically on this side until scene six.
