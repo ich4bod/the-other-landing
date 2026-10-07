@@ -33,7 +33,8 @@ function hook(ctx) {
   line(ctx, [[0.268, 0.357], [0.271, 0.362]], "#35302d", 0.002);
 }
 
-function coat(ctx) {
+function coat(ctx, pose = 0) {
+  const sleeveOffset = 0.014 * pose;
   ctx.save();
   ctx.shadowColor = palette.background;
   ctx.shadowBlur = 0.018;
@@ -42,8 +43,8 @@ function coat(ctx) {
   ctx.beginPath();
   ctx.moveTo(0.256, 0.378);
   ctx.bezierCurveTo(0.244, 0.39, 0.209, 0.398, 0.204, 0.421);
-  ctx.bezierCurveTo(0.193, 0.464, 0.182, 0.511, 0.18, 0.563);
-  ctx.lineTo(0.207, 0.57);
+  ctx.bezierCurveTo(0.193, 0.464, 0.182, 0.511, 0.18 - sleeveOffset, 0.563);
+  ctx.lineTo(0.207 - sleeveOffset, 0.57);
   ctx.lineTo(0.225, 0.473);
   ctx.bezierCurveTo(0.228, 0.544, 0.213, 0.629, 0.217, 0.669);
   ctx.bezierCurveTo(0.244, 0.682, 0.274, 0.673, 0.295, 0.661);
@@ -61,12 +62,12 @@ function coat(ctx) {
   line(ctx, [[0.256, 0.424], [0.251, 0.64]], '#27282b', 0.001);
   line(ctx, [[0.234, 0.485], [0.227, 0.647]], '#27282b', 0.001);
   line(ctx, [[0.275, 0.48], [0.285, 0.647]], '#27282b', 0.001);
-  line(ctx, [[0.183, 0.548], [0.206, 0.554]], "#776149", 0.002);
+  line(ctx, [[0.183 - sleeveOffset, 0.548], [0.206 - sleeveOffset, 0.554]], "#776149", 0.002);
   line(ctx, [[0.299, 0.528], [0.315, 0.525]], "#776149", 0.002);
   line(ctx, [[0.256, 0.439], [0.252, 0.628]], "#35302d", 0.0015);
 }
 
-function hallway(ctx, scene, elapsed = 600, reducedMotion = true) {
+function hallway(ctx, scene, elapsed = 600, reducedMotion = true, sleevePose = 0) {
   const left = ctx.createLinearGradient(0, 0.5, 0.4, 0.4);
   left.addColorStop(0, palette.background);
   left.addColorStop(1, palette.walls);
@@ -144,7 +145,7 @@ function hallway(ctx, scene, elapsed = 600, reducedMotion = true) {
   ctx.fillStyle = palette.light;
   ctx.fillRect(0.43, 0.12, 0.14, 0.025);
   hook(ctx);
-  if (scene === 0 || scene === 2) coat(ctx);
+  if (scene === 0 || scene === 2) coat(ctx, scene === 2 ? sleevePose : 0);
   if (scene === 4) {
     // A heavy folded hem protrudes from underneath the closed door.
     ctx.beginPath();
@@ -394,12 +395,20 @@ function welcome(ctx) {
   line(ctx, [[0.562, 0.466], [0.573, 0.469]], palette.light, 0.002);
 }
 
+function smoothstep(value) {
+  return value * value * (3 - 2 * value);
+}
+
 export function drawScene(ctx, width, height, { scene, looking, elapsed, reducedMotion, echoRing = false }) {
   ctx.save();
   ctx.scale(width, height);
   ctx.fillStyle = palette.background;
   ctx.fillRect(0, 0, 1, 1);
-  if ([0, 2, 4, 6].includes(scene)) hallway(ctx, scene, elapsed, reducedMotion);
+  if ([0, 2, 4, 6].includes(scene)) {
+    const u = Math.min(1, Math.max(0, elapsed / 600));
+    const sleevePose = scene === 2 ? (reducedMotion ? 1 : smoothstep(u)) : 0;
+    hallway(ctx, scene, elapsed, reducedMotion, sleevePose);
+  }
   else if (scene === 1 || scene === 5) landing(ctx, width, height, looking, scene, elapsed, reducedMotion);
   else if (scene === 3) closeWall(ctx);
   else if (scene === 7) eye(ctx, width, height, looking, echoRing, reducedMotion);

@@ -1,5 +1,5 @@
 import { create, reduce } from './model.mjs?v=1';
-import { drawScene } from './render.mjs?v=13';
+import { drawScene } from './render.mjs?v=14';
 import { createAudio } from './audio.mjs?v=4';
 
 // Serve the authored fixture unchanged, so visible words have one source.
@@ -122,13 +122,17 @@ function redraw() {
     elapsed: renderElapsed,
     reducedMotion: motionPreference.matches,
   });
-  // One shared frame chain: only the breathing coat and the finite ending fade move.
+  // One shared frame chain: only the breathing coat and finite scene changes move.
+  if (model.scene === 2 && (motionPreference.matches || renderElapsed >= 600)) {
+    elapsed = 600;
+    clockStart = null;
+  }
   if (model.ended && (motionPreference.matches || renderElapsed >= 600)) {
     elapsed = 600;
     clockStart = null;
   }
   if (!model.paused && !document.hidden && !motionPreference.matches &&
-      (model.scene === 5 || (model.scene === 6 && renderElapsed < 600) || (model.ended && renderElapsed < 600))) requestRedraw();
+      (model.scene === 5 || (model.scene === 2 && renderElapsed < 600) || (model.scene === 6 && renderElapsed < 600) || (model.ended && renderElapsed < 600))) requestRedraw();
 }
 
 function requestRedraw() {
